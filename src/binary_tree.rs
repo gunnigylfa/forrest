@@ -1,9 +1,71 @@
-// Behavior methods that are the same accross all types of binary trees
+// Behavior methods that are the same accross all types of binary trees extracted into this trait for reusability in the Merkle tree part
 pub trait BinaryTreeBehavior {
+    // Exercise 1:
+    /// Returns the index of the binary tree node given a depth and offset with the name given them
+    ///
+    /// # Arguments
+    ///
+    /// * `depth` - An integer indicating this node's depth in the tree
+    /// * `offset` - An integer indicating this node's offset in at its depth in the tree
+    ///
+    fn get_node_index(depth: u32, offset: u32) -> u32 {
+        let base: u32 = 2;
+        // Raise 2 to the power of the depth and add the offset and you have the index of the node in questio
+        base.pow(depth) + offset
+    }
+
+    // Exercise 2.1:
+    /// Returns the depth and offset tuple for a given index of a binary tree node
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - An integer indicating the a nodes index in the array representation of the binary tree
+    ///
+    fn get_depth_and_offset(index: usize) -> (u32, u32) {
+        // By same approach as to finding the height we can find the depth for this node
+        // Remember we are starting our index count from one. We want to abstract this away from our users
+        if index == 0 {
+            panic!("This binary tree uses one based indexing")
+        }
+        let node_count = index - 1;
+        let depth = (node_count + 1).ilog2();
+        // We know that each depth level starts at index 2^d where d is depth
+        // So by subtracting the depth from the inde x we get the offset from
+        let base: u32 = 2;
+        let start_index_at_depth = base.pow(depth);
+
+        let offset = index as u32 - start_index_at_depth;
+        (depth, offset)
+    }
+
+    // Exercise 2.2:
+    /// Returns the index of the parent node in the binary tree node a child's index
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - An integer indicating the node's index in the array representation of the binary tree
+    ///
+    fn get_parent(index: usize) -> usize {
+        index / 2
+    }
+
+    // Exercise 2.3:
+    /// Returns the index of the left most child of a node with a given index
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - An integer indicating the a nodes index in the array representation of the binary tree
+    ///
     fn get_left_child(index: usize) -> usize {
         2 * index
     }
 
+    /// Returns the index of the right most child of a node with a given index
+    ///
+    /// # Arguments
+    ///
+    /// * `index` - An integer indicating the a nodes index in the array representation of the binary tree
+    ///
     fn get_right_child(index: usize) -> usize {
         (2 * index) + 1
     }
@@ -11,7 +73,7 @@ pub trait BinaryTreeBehavior {
 
 // What we are dealing with is a complete binary tree, a complete binary tree
 // is where every level is completely filled,
-// except for possibly the last level, which is filled from left to right.
+// except maybe for the last level, which is filled from left to right.
 pub struct BinaryTree {
     ds: Vec<Option<u32>>,
 }
@@ -33,76 +95,6 @@ impl BinaryTree {
     }
     pub fn get(&self, index: u32) -> Option<u32> {
         self.ds[index as usize]
-    }
-
-    // Exercise 1:
-    /// Returns the index of the binary tree node given a depth and offset with the name given them
-    ///
-    /// # Arguments
-    ///
-    /// * `depth` - An integer indicating this node's depth in the tree
-    /// * `offset` - An integer indicating this node's offset in at its depth in the tree
-    ///
-    pub fn get_node_index(&self, depth: u32, offset: u32) -> u32 {
-        let base: u32 = 2;
-        // Raise 2 to the power of the depth and add the offset and you have the index of the node in questio
-        base.pow(depth) + offset
-    }
-
-    // Exercise 2.1:
-    /// Returns the depth and offset tuple for a given index of a binary tree node
-    ///
-    /// # Arguments
-    ///
-    /// * `index` - An integer indicating the a nodes index in the array representation of the binary tree
-    ///
-    pub fn get_depth_and_offset(&self, index: u32) -> (u32, u32) {
-        // By same approach as to finding the height we can find the depth for this node
-        // Remember we are starting our index count from one. We want to abstract this away from our users
-        if index == 0 {
-            panic!("This binary tree uses one based indexing")
-        }
-        let node_count = index - 1;
-        let depth = (node_count + 1).ilog2();
-        // We know that each depth level starts at index 2^d where d is depth
-        // So by subtracting the depth from the inde x we get the offset from
-        let base: u32 = 2;
-        let start_index_at_depth = base.pow(depth);
-
-        let offset = index - start_index_at_depth;
-        (depth, offset)
-    }
-
-    // Exercise 2.2:
-    /// Returns the index of the parent node in the binary tree node a child's index
-    ///
-    /// # Arguments
-    ///
-    /// * `index` - An integer indicating the node's index in the array representation of the binary tree
-    ///
-    pub fn get_parent(index: u32) -> u32 {
-        index / 2
-    }
-
-    // Exercise 2.3:
-    /// Returns the index of the left most child of a node with a given index
-    ///
-    /// # Arguments
-    ///
-    /// * `index` - An integer indicating the a nodes index in the array representation of the binary tree
-    ///
-    pub fn get_left_child(index: u32) -> u32 {
-        2 * index
-    }
-
-    /// Returns the index of the right most child of a node with a given index
-    ///
-    /// # Arguments
-    ///
-    /// * `index` - An integer indicating the a nodes index in the array representation of the binary tree
-    ///
-    pub fn get_right_child(index: u32) -> u32 {
-        (2 * index) + 1
     }
 
     // The height of a array represented, complete, binary tree is the node count
@@ -160,25 +152,21 @@ mod tests {
 
     #[test]
     fn should_get_node_index_from_depth_offset_pair() {
-        let bt = create_complete_binary_tree();
-
-        let root_node_index = bt.get_node_index(0, 0);
+        let root_node_index = BinaryTree::get_node_index(0, 0);
 
         assert_eq!(root_node_index, 1);
 
-        let last_node_index = bt.get_node_index(3, 7);
+        let last_node_index = BinaryTree::get_node_index(3, 7);
         assert_eq!(last_node_index, 15);
     }
 
     #[test]
     fn should_get_depth_and_offset_from_index() {
-        let bt = create_complete_binary_tree();
-
-        let root_depth_and_offset = bt.get_depth_and_offset(1);
+        let root_depth_and_offset = BinaryTree::get_depth_and_offset(1);
 
         assert_eq!(root_depth_and_offset, (0, 0));
 
-        let last_node_depth_and_offset = bt.get_depth_and_offset(15);
+        let last_node_depth_and_offset = BinaryTree::get_depth_and_offset(15);
         assert_eq!(last_node_depth_and_offset, (3, 7));
     }
 
